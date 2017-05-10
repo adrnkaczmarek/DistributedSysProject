@@ -4,8 +4,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace PR
+namespace DistributedSysProject
 {
+    /*
+     *Aktor odpowiedzialny za obliczenie liczb pierwszych z otrzymanego zakresu 
+     */
     public sealed class Worker : UntypedActor
     {
         protected override void OnReceive(object message)
@@ -45,6 +48,10 @@ namespace PR
         }
     }
 
+    /*
+     * Aktor znajdujący liczby pierwsze z zakresu 0 - Math.Sqrt(n), pozostałe liczby dzieli pomiędzy 
+     * aktorów typu Worker.
+     */
     public sealed class Master : UntypedActor
     {
         private IActorRef workerRouter;
@@ -52,6 +59,10 @@ namespace PR
         private int responseCounter;
         private List<int> result;
 
+        /*
+         * Jako parametr przyjmuje liczbę workerów, które master ma stworzyć. Tworzy także aktora rutującego wiadomości
+         * do poszczególnych workerów, z użyciem strategii RoundRobin
+         */
         public Master(int workerCount)
         {
             this.workerCount = workerCount;
@@ -69,6 +80,10 @@ namespace PR
                 int chunkSize = (msg.last - last) / workerCount;
                 BitArray primesMap = new BitArray(last-1, true);
 
+                /*
+                 * pętla obliczająca liczby pierwsze z zakresu 2 Math.Floor(n). Każda liczba ma przyporządkowany indeks
+                 * w tablicy primesMap, jezeli liczba jest pierwszą indeks będzie zawierał wartość true
+                 */
                 for (int i = 2; i < last; i++)
                 {
                     if (primesMap[i-2])
@@ -84,11 +99,12 @@ namespace PR
 
                 for(int i = 0; i < workerCount; i++)
                 {
+                    //Wysyłanie zakresów liczb do poszczególnych workerów, przy pomocy routera
                     workerRouter.Tell(new CalcChunkMessage(chunkSize*i + last + 1, chunkSize*i + chunkSize + last, primesMap));
                 }
             }
             else if (message is CalcDoneMessage)
-            {
+            {                
                 CalcDoneMessage msg = (CalcDoneMessage)message;
                 result.AddRange(msg.primes);
                 this.responseCounter++;
@@ -101,11 +117,17 @@ namespace PR
         }
     }
 
+    /*
+     * Obiekt wysyłany do Mastera w celu zakomunikowania że proces obliczania liczb pierwszych ma zostac rozpoczety
+     */
     public class StartCalcMessage
     {
         public int first { get; set; }
         public int last { get; set; }
 
+        /*
+         * Otrzymuje zakres z którego mają zostać obliczone liczby pierwsze.
+         */
         public StartCalcMessage(int first, int last)
         {
             this.first = first;
@@ -113,12 +135,19 @@ namespace PR
         }
     }
 
+    /*
+     * Obiekt wysyłany do Workera w celu zakomunikowania że ma on obliczyc liczby pierwsze
+     */
     public class CalcChunkMessage
     {
         public int first { get; set; }
         public int last { get; set; }
         public BitArray primes { get; set; }
 
+        /*
+        * Otrzymuje zakres z którego mają zostać obliczone liczby pierwsze, oraz tablice bitów oznaczających,
+        * które liczby z zakresu 0 do Math.Sqrt(n) są pierwsze, a które nie
+        */
         public CalcChunkMessage(int first, int last, BitArray primes)
         {
             this.first = first;
@@ -127,10 +156,16 @@ namespace PR
         }
     }
 
+    /*
+     * Obiekt wysyłany od Workera do Mastera, zawiera liste obiczonych liczb pierwszych
+     */
     public class CalcDoneMessage
     {
         public List<int> primes { get; set; }
 
+        /*
+         * Orzymuje obliczone liczb pierwsze
+         */
         public CalcDoneMessage(List<int> primes)
         {
             this.primes = primes;
