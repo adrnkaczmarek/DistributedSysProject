@@ -3,6 +3,7 @@ using Akka.Routing;
 using PR.Primes.Messages;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace PR.Primes.Actors
 {
@@ -13,13 +14,15 @@ namespace PR.Primes.Actors
         private IActorRef superMaster;
         private int responseCounter;
         private int workerCount { get; set; }
+        private Stopwatch watch;
 
         protected override void OnReceive(object message)
         {
             if (message is StartMachineCalcMessage)
             {
                 Console.WriteLine("Master started");
-
+                watch = new Stopwatch();
+                watch.Start();
                 superMaster = Sender;
                 this.result = new List<int>();
                 StartMachineCalcMessage msg = (StartMachineCalcMessage)message;
@@ -40,12 +43,15 @@ namespace PR.Primes.Actors
                 CalcDoneMessage msg = (CalcDoneMessage)message;
                 result.AddRange(msg.primes);
                 this.responseCounter++;
-                
+
                 if (responseCounter == this.workerCount)
                 {
                     result.Sort();
                     superMaster.Tell(new CalcDoneMessage(result));
-                    Console.WriteLine("Master finished");
+                    //stop watch
+                    watch.Stop();
+                    var elapsedMs = watch.ElapsedMilliseconds;
+                    Console.WriteLine("Master finished in " + elapsedMs + "ms.");
                 }
             }
         }

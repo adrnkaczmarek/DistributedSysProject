@@ -3,6 +3,7 @@ using PR.Primes.Messages;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace PR.Primes.Actors
 {
@@ -22,6 +23,8 @@ namespace PR.Primes.Actors
                 BitArray primes = msg.primes;
                 BitArray primeNumbers = new BitArray(last - first + 1, true);
                 List<int> primesToResponse = new List<int>();
+                Stopwatch watch = new Stopwatch();
+                watch.Start();
 
                 for (int i = 0; i < primes.Length; i++)
                 {
@@ -44,6 +47,10 @@ namespace PR.Primes.Actors
                         primesToResponse.Add(first + i);
                     }
                 }
+                //stop watch
+                watch.Stop();
+                var elapsedMs = watch.ElapsedMilliseconds;
+                Console.WriteLine("Agent finished in " + elapsedMs + "ms.");
                 Sender.Tell(new CalcDoneMessage(primesToResponse));
             }
         }

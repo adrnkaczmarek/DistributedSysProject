@@ -4,10 +4,10 @@ namespace DistributedSysProject
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            GraphColoring coloring = new GraphColoring();
-            coloring.colorGraph();
-        }
+        //static void Main(string[] args)
+        //{
+        //    GraphColoring coloring = new GraphColoring();
+        //    coloring.colorGraph();
+        //}
     }
 }
