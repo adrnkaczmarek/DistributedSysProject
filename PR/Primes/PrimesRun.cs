@@ -5,16 +5,22 @@ using PR.Primes.Messages;
 using System;
 
 namespace PR
-{    
+{
     class PrimesRun
     {
         Config configlocal = ConfigurationFactory.ParseString(@"
             akka {
                 actor {
                     provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
+                    serializers {
+                          hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
+                    }
+                    serialization-bindings {
+                      ""System.Object"" = hyperion
+                    }
                 }
                 remote {
-                    helios.tcp {
+                    dot-netty.tcp {
                         port = 8090
                         hostname = localhost
                     }
@@ -25,9 +31,15 @@ namespace PR
             akka {
                 actor {
                     provider = ""Akka.Remote.RemoteActorRefProvider, Akka.Remote""
+                    serializers {
+                          hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
+                    }
+                    serialization-bindings {
+                      ""System.Object"" = hyperion
+                    }
                 }
                 remote {
-                    helios.tcp {
+                    dot-netty.tcp {
                         port = 8080
                         hostname = localhost
                     }
@@ -36,17 +48,23 @@ namespace PR
 
         public void run()
         {
+            runRemote();
+            runLocal();
+
+            Console.ReadKey();
+        }
+
+        private void runLocal()
+        {
             var localSystem = ActorSystem.Create("localsystem", configlocal);
-            var remoteSystem = ActorSystem.Create("remotesystem", configremote);
-            var superMasterProps = Props.Create(() => new SuperMaster(localSystem, remoteSystem, 2, 8));
-            IActorRef superMaster = localSystem.ActorOf(superMasterProps, "superMaster");
-            
-            IActorRef localMaster = localSystem.ActorOf(Props.Create(typeof(Master)), "slave1");
-            IActorRef remoteMaster = remoteSystem.ActorOf(Props.Create(typeof(Master)), "slave1");
-
+            IActorRef superMaster = localSystem.ActorOf(Props.Create(() => new SuperMaster(2, 8)), "superMaster");
+            IActorRef localMaster = localSystem.ActorOf(Props.Create(typeof(Master)), "slave2");
             superMaster.Tell(new StartCalcMessage(0, 255));
-
-            Console.ReadLine();
+        }
+        private void runRemote()
+        {
+            var remoteSystem = ActorSystem.Create("remotesystem", configremote);
+            remoteSystem.ActorOf(Props.Create(typeof(Master)), "slave1");
         }
 
         static void Main(string[] args)

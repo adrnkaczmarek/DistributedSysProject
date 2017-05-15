@@ -19,6 +19,7 @@ namespace PR.Primes.Actors
             if (message is StartMachineCalcMessage)
             {
                 Console.WriteLine("Master started");
+
                 superMaster = Sender;
                 this.result = new List<int>();
                 StartMachineCalcMessage msg = (StartMachineCalcMessage)message;
@@ -39,8 +40,7 @@ namespace PR.Primes.Actors
                 CalcDoneMessage msg = (CalcDoneMessage)message;
                 result.AddRange(msg.primes);
                 this.responseCounter++;
-
-                Console.WriteLine("Master received");
+                
                 if (responseCounter == this.workerCount)
                 {
                     result.Sort();

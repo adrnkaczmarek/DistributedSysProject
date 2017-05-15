@@ -101,6 +101,7 @@
     <Compile Include="Primes\Actors\Worker.cs" />
     <Compile Include="Primes\Messages\CalcChunkMessage.cs" />
     <Compile Include="Primes\Messages\CalcDoneMessage.cs" />
+    <Compile Include="Primes\Messages\RangeMessage.cs" />
     <Compile Include="Primes\Messages\StartCalcMessage.cs" />
     <Compile Include="Primes\Messages\StartMachineCalcMessage.cs" />
     <Compile Include="Primes\PrimesRun.cs" />

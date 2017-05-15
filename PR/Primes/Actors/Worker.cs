@@ -45,7 +45,6 @@ namespace PR.Primes.Actors
                     }
                 }
                 Sender.Tell(new CalcDoneMessage(primesToResponse));
-                Console.WriteLine("Worker finished");
             }
         }
     }
