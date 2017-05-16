@@ -17,8 +17,8 @@ namespace PR.Primes.Actors
         private List<int> result;
         private string localIP;
         private string remoteIP;
-        private ActorSelection remoteSlave = Context.ActorSelection("akka.tcp://remotesystem@192.168.0.17:8080/user/slave1");
-        private ActorSelection localSlave = Context.ActorSelection("akka.tcp://localsystem@192.168.0.17:8090/user/slave2");
+        private ActorSelection remoteSlave;
+        private ActorSelection localSlave;
         private Stopwatch watch;
         /*
          * Jako parametr przyjmuje liczbę workerów, które master ma stworzyć. Tworzy także aktora rutującego wiadomości
@@ -37,7 +37,6 @@ namespace PR.Primes.Actors
             remoteSlave = Context.ActorSelection("akka.tcp://remotesystem@" + remoteIP + ":8080/user/slave1");
             localSlave = Context.ActorSelection("akka.tcp://localsystem@" + localIP + ":8090/user/slave2");
         }
-
         protected override void OnReceive(object message)
         {
             if (message is StartCalcMessage)
@@ -46,7 +45,6 @@ namespace PR.Primes.Actors
                 watch.Start();
                 StartCalcMessage msg = (StartCalcMessage)message;
                 int last = (int)Math.Floor(Math.Sqrt(msg.last));
-                int chunkSize = (msg.last - last) / machinesCount;
                 BitArray primesMap = new BitArray(last - 1, true);
 
                 for (int i = 2; i < last; i++)
@@ -62,9 +60,9 @@ namespace PR.Primes.Actors
                     }
                 }
 
-                localSlave.Tell(new StartMachineCalcMessage(last + 1, chunkSize + last, primesMap, workerCount / machinesCount));
+                localSlave.Tell(new StartMachineCalcMessage(last + 1, msg.last, workerCount, primesMap, workerCount / machinesCount));
 
-                remoteSlave.Tell(new StartMachineCalcMessage(chunkSize + last + 1, 2 * chunkSize + last, primesMap, workerCount / machinesCount));
+                remoteSlave.Tell(new StartMachineCalcMessage(last + 1 + workerCount/2, msg.last, workerCount, primesMap, workerCount / machinesCount));
             }
             else if (message is CalcDoneMessage)
             {
@@ -86,8 +84,6 @@ namespace PR.Primes.Actors
                         foreach (int i in result)
                             tw.Write(i.ToString() + ", ");
                     }
-
-
                 }
             }
         }

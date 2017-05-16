@@ -88,15 +88,15 @@ namespace PR
         {
             int range = 0;
             Console.WriteLine("Podaj zakres:");
+
             while (range <= 0)
             {
                 range = int.Parse(Console.ReadLine());
             }
-
-            // hosts count, agents count, localIP, remoteIP 
-            new PrimesRun(2, 16, "192.168.0.14", "192.168.0.17").runLocal(range);
-
-            //new PrimesRun(1, 4, "192.168.0.17", "192.168.0.17").runRemote();
+            
+            PrimesRun run = new PrimesRun(2, 8, "localhost", "localhost");
+            run.runRemote();
+            run.runLocal(range);
 
             Console.ReadKey();
         }

@@ -16,41 +16,42 @@ namespace PR.Primes.Actors
         {
             if (message is CalcChunkMessage)
             {
-                Console.WriteLine("Worker started");
                 CalcChunkMessage msg = (CalcChunkMessage)message;
                 int first = msg.first;
                 int last = msg.last;
+                int jump = msg.jumpNumber;
                 BitArray primes = msg.primes;
-                BitArray primeNumbers = new BitArray(last - first + 1, true);
                 List<int> primesToResponse = new List<int>();
+
+                Console.WriteLine("Worker started with first=" + first + " and jump=" + jump);
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
 
-                for (int i = 0; i < primes.Length; i++)
+                if(!(first%2 == 0 && jump%2==0))
                 {
-                    if (primes[i])
+                    for (int i = first; i <= last; i += jump)
                     {
-                        for (int j = first; j <= last; j++)
+                        for (int j = 0; j < primes.Length; j++)
                         {
-                            if (j % (i + 2) == 0)
+                            if (primes[j])
                             {
-                                primeNumbers[j - first] = false;
+                                if(i % (j + 2) == 0)
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (j == (primes.Length - 1))
+                            {
+                                primesToResponse.Add(i);
                             }
                         }
                     }
                 }
-
-                for (int i = 0; i < primeNumbers.Length; i++)
-                {
-                    if (primeNumbers[i])
-                    {
-                        primesToResponse.Add(first + i);
-                    }
-                }
-                //stop watch
+               
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
-                Console.WriteLine("Agent finished in " + elapsedMs + "ms.");
+                Console.WriteLine("Worker finished in " + elapsedMs + "ms.");
                 Sender.Tell(new CalcDoneMessage(primesToResponse));
             }
         }

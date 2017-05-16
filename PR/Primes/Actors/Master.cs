@@ -23,19 +23,17 @@ namespace PR.Primes.Actors
                 Console.WriteLine("Master started");
                 watch = new Stopwatch();
                 watch.Start();
+
                 superMaster = Sender;
                 this.result = new List<int>();
                 StartMachineCalcMessage msg = (StartMachineCalcMessage)message;
-                int last = (int)Math.Floor(Math.Sqrt(msg.last));
                 this.workerCount = msg.workerCount;
-                int chunkSize = (msg.last - last) / this.workerCount;
 
                 workerRouter = Context.ActorOf(Props.Create<Worker>().WithRouter(new RoundRobinPool(this.workerCount)));
 
                 for (int i = 0; i < workerCount; i++)
                 {
-                    workerRouter.Tell(new CalcChunkMessage(chunkSize * i + last + 1,
-                        chunkSize * i + chunkSize + last, msg.primes));
+                    workerRouter.Tell(new CalcChunkMessage(msg.first + i, msg.last, msg.jumpNumber, msg.primes));
                 }
             }
             else if (message is CalcDoneMessage)
